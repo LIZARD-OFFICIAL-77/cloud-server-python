@@ -103,7 +103,7 @@ Multiple set messages may be sent in one message where each message is separated
 
 ### Server -> Client
 
-```
+```text
 4000  Generic Error
   When the client violates the protocol.
 
