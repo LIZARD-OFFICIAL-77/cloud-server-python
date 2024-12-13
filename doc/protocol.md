@@ -1,4 +1,4 @@
-# This is the protocol used by cloud-server.
+This is the protocol used by cloud-server.
 
 It is based on the protocol used by Scratch 3. A client compatible with Scratch 3's protocol should be compatible with cloud-server, unless you're doing something extremely unusual.
 
