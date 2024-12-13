@@ -14,4 +14,5 @@ async def main():
 
 asyncio.run(main())
 
-class Server()
+class Server:
+    def __init__(self):pass
