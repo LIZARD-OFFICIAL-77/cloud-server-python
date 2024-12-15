@@ -178,7 +178,7 @@ class CloudServer:
             project_id_blacklist (list, optional): List of blacklisted project ids. Defaults to None.
             banned_ip_list (list, optional): List of banned IP addresses. Defaults to None.
             size_limit_int (int, optional): Variable length limit. Defaults to 256.
-            db (JsonDB, optional): A dict-like class that functions like a database. Defaults to None.
+            db (JsonDB, optional): A dict-like class that is persistent. Defaults to None.
 
         Raises:
             RuntimeError: If both whitelist and blacklist are specified
@@ -212,20 +212,34 @@ class CloudServer:
                 not ip in self.banned_ip_list,
                 not user in self.banned_usernames,
                 (
-                    (self.project_id_allow == "*") or 
+                    (
+                        self.project_id_allow == "*"
+                    ) 
                     
-                    (self.project_id_allow == "blacklist" and 
+                    or 
+                    
+                    (   
+                        self.project_id_allow == "blacklist" and 
                         (project_id not in self.project_id_blacklist)
-                    ) or 
+                    ) 
                     
-                    (self.project_id_allow == "whitelist" and 
+                    or 
+                    
+                    (   
+                        self.project_id_allow == "whitelist" and 
                         (project_id in self.project_id_whitelist)
                     )
                 )
             ]):
                 HANDSHAKE = Handshake(project_id=project_id,user=user,ip=ip)
                 if self.db:
-                    self.db["handshakes"] = self.db["handshakes"] + HANDSHAKE
+                    try:
+                        self.db["handshakes"].append(HANDSHAKE)
+                        self.db.update({})
+                    except KeyError:
+                        self.db.update({
+                            "handshakes":[HANDSHAKE]
+                        })
                 self.handshakes.append(HANDSHAKE)
                 return self.websocket.Response()
             else:
@@ -236,6 +250,16 @@ class CloudServer:
             if not Handshake(project_id=project_id,user=user,ip=ip) in self.handshakes:return
             name = name.replace("☁ ","")
             self.variables[self.Variable.varname(name)] = self.Variable(name,value)
+            if self.db:
+                try:
+                    self.db["variables"][name] = value
+                    self.db.update({})
+                except KeyError:
+                    self.db.update({
+                        "variables":{
+                            name:value,
+                        }
+                    })
         
         @self.websocket.request
         def delete(project_id,user,name,ip):
